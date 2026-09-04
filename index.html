@@ -6,115 +6,422 @@
 <title>The Civis Project — Youth Conditions Map (Prototype)</title>
 <style>
   :root {
-    --bg: #0f1115;
+    --bg: #0b0d11;
+    --bg-2: #0f1218;
     --surface-1: #1a1d24;
+    --surface-2: #20242c;
     --border: #2a2e37;
     --text-primary: #f2f2f0;
     --text-secondary: #a8a9ad;
     --text-muted: #6b6d73;
     --text-accent: #5b8def;
+    --strong: #639922;
+    --stable: #1D9E75;
+    --strained: #EF9F27;
+    --critical: #E24B4A;
+    --nodata: #565a63;
   }
 
   * { box-sizing: border-box; }
 
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulseRing {
+    0% { r: 4; opacity: 0.9; }
+    100% { r: 16; opacity: 0; }
+  }
+
   body {
     margin: 0;
-    padding: 32px 20px;
-    background: var(--bg);
+    padding: 40px 20px 60px;
+    background: radial-gradient(circle at 20% -10%, #131722 0%, var(--bg) 55%);
     color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
   .wrap {
-    max-width: 760px;
+    max-width: 980px;
     margin: 0 auto;
   }
 
-  h1 {
-    font-size: 22px;
+  header {
+    animation: fadeUp 0.5s ease both;
+    margin-bottom: 24px;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    color: var(--text-accent);
     font-weight: 600;
-    margin: 0 0 4px;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: 30px;
+    font-weight: 650;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
   }
 
   .subtitle {
     color: var(--text-secondary);
-    font-size: 14px;
-    margin: 0 0 24px;
+    font-size: 14.5px;
+    margin: 0;
+    max-width: 640px;
+    line-height: 1.5;
   }
 
-  input, select {
+  /* Stat cards */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 24px 0 20px;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .stat-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--stat-color, var(--text-accent));
+  }
+
+  .stat-card.active {
+    border-color: var(--stat-color, var(--text-accent));
+    background: var(--surface-2);
+  }
+
+  .stat-card .bar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--stat-color, var(--text-accent));
+  }
+
+  .stat-count {
+    font-size: 22px;
+    font-weight: 650;
+    line-height: 1;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s ease 0.15s both;
+  }
+
+  .search-box {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .search-box svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+  }
+
+  input {
+    width: 100%;
     background: var(--surface-1);
     border: 1px solid var(--border);
     color: var(--text-primary);
-    border-radius: 8px;
-    padding: 8px 12px;
+    border-radius: 10px;
+    padding: 10px 12px 10px 34px;
     font-size: 14px;
+    transition: border-color 0.15s ease, background 0.15s ease;
   }
 
-  input:focus, select:focus {
+  input:focus {
     outline: none;
+    border-color: var(--text-accent);
+    background: var(--surface-2);
+  }
+
+  button.reset {
+    background: var(--surface-1);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  button.reset:hover {
+    color: var(--text-primary);
     border-color: var(--text-accent);
   }
 
-  button {
-    background: var(--text-accent);
-    color: white;
-    border: none;
+  /* Map */
+  .map-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    animation: fadeUp 0.7s ease 0.2s both;
+    position: relative;
+  }
+
+  #map svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  #map path {
+    transition: fill 0.35s ease, stroke 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease;
+  }
+
+  #map path:hover {
+    filter: brightness(1.18);
+  }
+
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(20,22,28,0.95);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
-    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    color: var(--text-primary);
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    transform: translate(-50%, -120%);
+    white-space: nowrap;
+    z-index: 10;
   }
 
-  button:hover {
-    opacity: 0.9;
+  /* Detail panel */
+  #detail {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0 1.25rem;
+    margin-top: 14px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.35s ease;
   }
 
-  .legend-dot {
+  #detail.open {
+    max-height: 400px;
+    opacity: 1;
+    padding: 1.1rem 1.25rem 1.25rem;
+  }
+
+  .bar-row { margin-bottom: 10px; }
+
+  .bar-track {
+    background: var(--border);
+    border-radius: 5px;
+    height: 7px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    background: linear-gradient(90deg, var(--text-accent), #8bb3f5);
+    width: 0%;
+    transition: width 0.6s cubic-bezier(.2,.8,.2,1);
+  }
+
+  /* Sources section */
+  .sources {
+    margin-top: 40px;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .sources h2 {
+    font-size: 18px;
+    margin: 0 0 4px;
+  }
+
+  .sources .lead {
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    margin: 0 0 18px;
+    max-width: 640px;
+    line-height: 1.5;
+  }
+
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .source-card {
+    display: block;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: transform 0.18s ease, border-color 0.18s ease;
+    position: relative;
+  }
+
+  .source-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--source-color, var(--text-accent));
+  }
+
+  .source-card .dot {
     display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    margin-right: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--source-color, var(--text-accent));
+    margin-right: 8px;
+  }
+
+  .source-card .title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .source-card .desc {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .source-card .arrow {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    color: var(--text-muted);
+    font-size: 13px;
+    transition: transform 0.18s ease;
+  }
+
+  .source-card:hover .arrow {
+    transform: translate(2px, -2px);
+    color: var(--text-accent);
+  }
+
+  .general-links {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+
+  .general-links a {
+    color: var(--text-accent);
+    text-decoration: none;
+  }
+
+  .general-links a:hover {
+    text-decoration: underline;
   }
 
   footer {
-    margin-top: 32px;
+    margin-top: 36px;
     color: var(--text-muted);
     font-size: 12px;
+    line-height: 1.6;
   }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1>The Civis Project</h1>
-  <p class="subtitle">Prototype: youth living conditions by country, styled from a composite of UNICEF-style indicators. Placeholder data — not real UNICEF figures.</p>
+  <header>
+    <div class="eyebrow">Prototype</div>
+    <h1>The Civis Project</h1>
+    <p class="subtitle">Youth living conditions by country, scored from a composite of UNICEF-style indicators across health, education, economic opportunity, and safety. Scores shown here are placeholders for demonstration — real figures will be pulled from UNICEF's public datasets.</p>
+  </header>
 
-  <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
-    <input id="search" type="text" placeholder="Search for a country" style="flex:1; min-width:180px;" oninput="onSearch()">
-    <select id="tier" onchange="onFilter()" style="min-width:140px;">
-      <option value="all">All ratings</option>
-      <option value="Strong">Strong</option>
-      <option value="Stable">Stable</option>
-      <option value="Strained">Strained</option>
-      <option value="Critical">Critical</option>
-    </select>
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="text" placeholder="Search for a country" oninput="onSearch()">
+    </div>
+    <button class="reset" onclick="resetView()">Reset view</button>
   </div>
 
-  <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
-    <span><span class="legend-dot" style="background:#639922;"></span>Strong</span>
-    <span><span class="legend-dot" style="background:#1D9E75;"></span>Stable</span>
-    <span><span class="legend-dot" style="background:#EF9F27;"></span>Strained</span>
-    <span><span class="legend-dot" style="background:#E24B4A;"></span>Critical</span>
-    <span><span class="legend-dot" style="background:#B4B2A9;"></span>No data</span>
+  <div class="map-card">
+    <div id="map" style="width:100%; position:relative;"></div>
+    <div class="tooltip" id="tooltip"></div>
   </div>
 
-  <div id="map" style="width:100%;"></div>
-  <div id="detail" style="display:none; background:var(--surface-1); border-radius:12px; padding:1rem 1.25rem; margin-top:14px;"></div>
+  <div id="detail"></div>
+
+  <div class="sources">
+    <h2>Explore the underlying UNICEF data</h2>
+    <p class="lead">Each category in this prototype's composite score is meant to draw from a real UNICEF dataset. These are the actual UNICEF Data portal pages that would feed each score category once this moves past the prototype stage.</p>
+
+    <div class="source-grid">
+      <a class="source-card" style="--source-color:#639922" href="https://data.unicef.org/topic/child-survival/stillbirths/" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <div class="title"><span class="dot"></span>Health</div>
+        <div class="desc">Under-five and neonatal mortality, adolescent birth rates, and essential health service coverage.</div>
+      </a>
+      <a class="source-card" style="--source-color:#1D9E75" href="https://data.unicef.org/topic/education/overview/" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <div class="title"><span class="dot"></span>Education</div>
+        <div class="desc">School attendance rates, out-of-school children, and learning outcome indicators by country.</div>
+      </a>
+      <a class="source-card" style="--source-color:#EF9F27" href="https://data.unicef.org/topic/child-poverty/overview/" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <div class="title"><span class="dot"></span>Economic opportunity</div>
+        <div class="desc">Child poverty rates and social protection coverage — the closest UNICEF equivalent to an economic-opportunity indicator.</div>
+      </a>
+      <a class="source-card" style="--source-color:#E24B4A" href="https://data.unicef.org/topic/child-protection/overview/" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <div class="title"><span class="dot"></span>Safety &amp; protection</div>
+        <div class="desc">Violence against children, child marriage, birth registration, and other protection indicators.</div>
+      </a>
+    </div>
+
+    <div class="general-links">
+      <a href="https://data.unicef.org/adp/" target="_blank" rel="noopener">Adolescent Data Portal ↗</a>
+      <a href="https://data.unicef.org/sdgs/" target="_blank" rel="noopener">SDGs for Children ↗</a>
+      <a href="https://data.unicef.org/resources/resource-type/datasets/" target="_blank" rel="noopener">All UNICEF datasets ↗</a>
+    </div>
+  </div>
 
   <footer>
-    Prototype built with D3.js and world-atlas boundary data. Placeholder scores for demonstration only.
+    Prototype built with D3.js and world-atlas boundary data. Country scores shown are placeholders for demonstration only and are not sourced from UNICEF. Data source links above point to UNICEF's real public data portal.
   </footer>
 
 </div>
@@ -145,37 +452,86 @@ const data = {
   "Afghanistan": {score:12, tier:"Critical", edu:15, health:20, econ:8, safety:5}
 };
 const tierColor = {Strong:"#639922", Stable:"#1D9E75", Strained:"#EF9F27", Critical:"#E24B4A"};
-const NO_DATA = "#B4B2A9";
+const NO_DATA = "#565a63";
+const tiers = ["Strong", "Stable", "Strained", "Critical"];
 
 let allFeatures = [];
 let path, svg, gCountries;
-const width = 680, height = 400;
+let activeTier = 'all';
+let selectedName = null;
+const width = 900, height = 480;
 
 function colorFor(name) {
   const d = data[name];
   return d ? tierColor[d.tier] : NO_DATA;
 }
 
+/* ---------- Stat cards ---------- */
+function buildStats() {
+  const counts = { Strong: 0, Stable: 0, Strained: 0, Critical: 0 };
+  Object.values(data).forEach(d => counts[d.tier]++);
+  const el = document.getElementById('stats');
+  el.innerHTML = tiers.map(t => `
+    <div class="stat-card" id="stat-${t}" style="--stat-color:${tierColor[t]}" onclick="toggleTierFilter('${t}')">
+      <div class="bar"></div>
+      <div class="stat-count" data-target="${counts[t]}">0</div>
+      <div class="stat-label">${t}</div>
+    </div>
+  `).join('');
+  // animate count-up
+  document.querySelectorAll('.stat-count').forEach(elCount => {
+    const target = parseInt(elCount.dataset.target, 10);
+    let cur = 0;
+    const step = Math.max(1, Math.ceil(target / 20));
+    const t = setInterval(() => {
+      cur += step;
+      if (cur >= target) { cur = target; clearInterval(t); }
+      elCount.textContent = cur;
+    }, 30);
+  });
+}
+
+function toggleTierFilter(tier) {
+  activeTier = (activeTier === tier) ? 'all' : tier;
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+  if (activeTier !== 'all') document.getElementById(`stat-${activeTier}`).classList.add('active');
+  applyStyles();
+}
+
+function resetView() {
+  activeTier = 'all';
+  selectedName = null;
+  document.getElementById('search').value = '';
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+  closeDetail();
+  applyStyles();
+}
+
+/* ---------- Detail panel ---------- */
+function closeDetail() {
+  const el = document.getElementById('detail');
+  el.classList.remove('open');
+}
+
 function renderDetail(name) {
   const d = data[name];
   const el = document.getElementById('detail');
   if (!d) {
-    el.style.display = 'block';
-    el.innerHTML = `<p style="font-size:14px; margin:0;">${name}</p><p style="font-size:13px; color:var(--text-secondary); margin:4px 0 0;">No data in this mockup.</p>`;
+    el.innerHTML = `<div style="padding-top:14px;"><p style="font-size:14px; margin:0;">${name}</p><p style="font-size:13px; color:var(--text-secondary); margin:4px 0 0;">No data in this prototype yet.</p></div>`;
+    el.classList.add('open');
     return;
   }
   function bar(label, val) {
-    return `<div style="margin-bottom:8px;">
-      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-secondary); margin-bottom:3px;"><span>${label}</span><span>${val}</span></div>
-      <div style="background:var(--border); border-radius:4px; height:6px;"><div style="width:${val}%; height:100%; background:var(--text-accent); border-radius:4px;"></div></div>
+    return `<div class="bar-row">
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-secondary); margin-bottom:4px;"><span>${label}</span><span>${val}</span></div>
+      <div class="bar-track"><div class="bar-fill" data-w="${val}"></div></div>
     </div>`;
   }
-  el.style.display = 'block';
   el.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 12px;">
       <div>
-        <p style="font-size:16px; font-weight:500; margin:0;">${name}</p>
-        <p style="font-size:13px; color:var(--text-secondary); margin:0;">Composite score ${d.score}/100 · ${d.tier}</p>
+        <p style="font-size:17px; font-weight:600; margin:0;">${name}</p>
+        <p style="font-size:13px; color:var(--text-secondary); margin:2px 0 0;">Composite score <strong style="color:var(--text-primary);">${d.score}</strong>/100 · <span style="color:${tierColor[d.tier]}">${d.tier}</span></p>
       </div>
     </div>
     ${bar('Education', d.edu)}
@@ -183,38 +539,48 @@ function renderDetail(name) {
     ${bar('Economic opportunity', d.econ)}
     ${bar('Safety', d.safety)}
   `;
+  el.classList.add('open');
+  // trigger bar animations next frame
+  requestAnimationFrame(() => {
+    el.querySelectorAll('.bar-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
+  });
 }
 
-function applyStyles(filterTier, highlightName) {
+/* ---------- Map styling ---------- */
+function applyStyles() {
   gCountries.selectAll('path')
     .attr('fill', f => {
       const name = f.properties.name;
       const d = data[name];
-      if (filterTier !== 'all' && (!d || d.tier !== filterTier)) return 'var(--surface-1)';
+      if (activeTier !== 'all' && (!d || d.tier !== activeTier)) return 'var(--surface-2)';
       return colorFor(name);
     })
-    .attr('stroke', f => f.properties.name === highlightName ? 'var(--text-primary)' : 'rgba(255,255,255,.15)')
-    .attr('stroke-width', f => f.properties.name === highlightName ? 1.5 : 0.5);
+    .attr('stroke', f => f.properties.name === selectedName ? '#ffffff' : 'rgba(255,255,255,.15)')
+    .attr('stroke-width', f => f.properties.name === selectedName ? 1.8 : 0.5);
 }
 
-function onFilter() {
-  applyStyles(document.getElementById('tier').value, null);
+function selectCountry(name) {
+  selectedName = name;
+  applyStyles();
+  renderDetail(name);
 }
 
 function onSearch() {
   const q = document.getElementById('search').value.trim().toLowerCase();
-  if (!q) { applyStyles(document.getElementById('tier').value, null); return; }
+  if (!q) { selectedName = null; applyStyles(); closeDetail(); return; }
   const match = allFeatures.find(f => f.properties.name.toLowerCase().includes(q));
-  if (match) {
-    applyStyles('all', match.properties.name);
-    renderDetail(match.properties.name);
-  }
+  if (match) selectCountry(match.properties.name);
 }
 
+/* ---------- Build map ---------- */
 svg = d3.select('#map').append('svg').attr('viewBox', `0 0 ${width} ${height}`).attr('width', '100%');
-const projection = d3.geoNaturalEarth1().scale(108).translate([width / 2, height / 2 + 10]);
+const projection = d3.geoNaturalEarth1().scale(148).translate([width / 2, height / 2 + 10]);
 path = d3.geoPath(projection);
 gCountries = svg.append('g');
+const tooltip = document.getElementById('tooltip');
+const mapContainer = document.getElementById('map');
+
+buildStats();
 
 d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
   allFeatures = topojson.feature(world, world.objects.countries).features;
@@ -226,10 +592,23 @@ d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(w
     .attr('stroke', 'rgba(255,255,255,.15)')
     .attr('stroke-width', 0.5)
     .style('cursor', 'pointer')
-    .on('click', (event, f) => {
-      applyStyles(document.getElementById('tier').value, f.properties.name);
-      renderDetail(f.properties.name);
-    });
+    .style('opacity', 0)
+    .on('mousemove', (event, f) => {
+      const d = data[f.properties.name];
+      const rect = mapContainer.getBoundingClientRect();
+      tooltip.style.left = (event.clientX - rect.left) + 'px';
+      tooltip.style.top = (event.clientY - rect.top) + 'px';
+      tooltip.style.opacity = 1;
+      tooltip.innerHTML = d
+        ? `<strong>${f.properties.name}</strong> — ${d.score}/100 (${d.tier})`
+        : `<strong>${f.properties.name}</strong> — no data`;
+    })
+    .on('mouseleave', () => { tooltip.style.opacity = 0; })
+    .on('click', (event, f) => selectCountry(f.properties.name))
+    .transition()
+    .delay((d, i) => i * 1.2)
+    .duration(500)
+    .style('opacity', 1);
 });
 </script>
 </body>
