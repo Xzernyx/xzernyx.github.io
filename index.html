@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Civis Project — Youth Conditions Map (Prototype)</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface-1: #1a1d24;
+    --border: #2a2e37;
+    --text-primary: #f2f2f0;
+    --text-secondary: #a8a9ad;
+    --text-muted: #6b6d73;
+    --text-accent: #5b8def;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 32px 20px;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+
+  input, select {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--text-accent);
+  }
+
+  button {
+    background: var(--text-accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    opacity: 0.9;
+  }
+
+  .legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 5px;
+  }
+
+  footer {
+    margin-top: 32px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>The Civis Project</h1>
+  <p class="subtitle">Prototype: youth living conditions by country, styled from a composite of UNICEF-style indicators. Placeholder data — not real UNICEF figures.</p>
+
+  <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+    <input id="search" type="text" placeholder="Search for a country" style="flex:1; min-width:180px;" oninput="onSearch()">
+    <select id="tier" onchange="onFilter()" style="min-width:140px;">
+      <option value="all">All ratings</option>
+      <option value="Strong">Strong</option>
+      <option value="Stable">Stable</option>
+      <option value="Strained">Strained</option>
+      <option value="Critical">Critical</option>
+    </select>
+  </div>
+
+  <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
+    <span><span class="legend-dot" style="background:#639922;"></span>Strong</span>
+    <span><span class="legend-dot" style="background:#1D9E75;"></span>Stable</span>
+    <span><span class="legend-dot" style="background:#EF9F27;"></span>Strained</span>
+    <span><span class="legend-dot" style="background:#E24B4A;"></span>Critical</span>
+    <span><span class="legend-dot" style="background:#B4B2A9;"></span>No data</span>
+  </div>
+
+  <div id="map" style="width:100%;"></div>
+  <div id="detail" style="display:none; background:var(--surface-1); border-radius:12px; padding:1rem 1.25rem; margin-top:14px;"></div>
+
+  <footer>
+    Prototype built with D3.js and world-atlas boundary data. Placeholder scores for demonstration only.
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+const data = {
+  "Norway": {score:86, tier:"Strong", edu:91, health:94, econ:78, safety:82},
+  "Japan": {score:83, tier:"Strong", edu:95, health:96, econ:74, safety:88},
+  "Canada": {score:81, tier:"Strong", edu:88, health:90, econ:76, safety:79},
+  "Australia": {score:80, tier:"Strong", edu:87, health:90, econ:75, safety:78},
+  "Germany": {score:79, tier:"Stable", edu:85, health:89, econ:73, safety:80},
+  "South Korea": {score:76, tier:"Stable", edu:93, health:91, econ:62, safety:74},
+  "Poland": {score:71, tier:"Stable", edu:80, health:82, econ:64, safety:69},
+  "Chile": {score:68, tier:"Stable", edu:74, health:80, econ:58, safety:60},
+  "United States of America": {score:65, tier:"Stable", edu:78, health:72, econ:66, safety:52},
+  "Mexico": {score:57, tier:"Strained", edu:64, health:68, econ:52, safety:44},
+  "Brazil": {score:54, tier:"Strained", edu:62, health:66, econ:48, safety:40},
+  "Indonesia": {score:52, tier:"Strained", edu:60, health:63, econ:50, safety:44},
+  "South Africa": {score:49, tier:"Strained", edu:55, health:58, econ:38, safety:41},
+  "India": {score:47, tier:"Strained", edu:52, health:57, econ:44, safety:39},
+  "Egypt": {score:45, tier:"Strained", edu:50, health:60, econ:41, safety:38},
+  "Ethiopia": {score:33, tier:"Critical", edu:40, health:37, econ:28, safety:27},
+  "Nigeria": {score:31, tier:"Critical", edu:35, health:38, econ:26, safety:24},
+  "Haiti": {score:22, tier:"Critical", edu:28, health:30, econ:15, safety:12},
+  "Yemen": {score:14, tier:"Critical", edu:18, health:22, econ:9, safety:6},
+  "Afghanistan": {score:12, tier:"Critical", edu:15, health:20, econ:8, safety:5}
+};
+const tierColor = {Strong:"#639922", Stable:"#1D9E75", Strained:"#EF9F27", Critical:"#E24B4A"};
+const NO_DATA = "#B4B2A9";
+
+let allFeatures = [];
+let path, svg, gCountries;
+const width = 680, height = 400;
+
+function colorFor(name) {
+  const d = data[name];
+  return d ? tierColor[d.tier] : NO_DATA;
+}
+
+function renderDetail(name) {
+  const d = data[name];
+  const el = document.getElementById('detail');
+  if (!d) {
+    el.style.display = 'block';
+    el.innerHTML = `<p style="font-size:14px; margin:0;">${name}</p><p style="font-size:13px; color:var(--text-secondary); margin:4px 0 0;">No data in this mockup.</p>`;
+    return;
+  }
+  function bar(label, val) {
+    return `<div style="margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-secondary); margin-bottom:3px;"><span>${label}</span><span>${val}</span></div>
+      <div style="background:var(--border); border-radius:4px; height:6px;"><div style="width:${val}%; height:100%; background:var(--text-accent); border-radius:4px;"></div></div>
+    </div>`;
+  }
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div>
+        <p style="font-size:16px; font-weight:500; margin:0;">${name}</p>
+        <p style="font-size:13px; color:var(--text-secondary); margin:0;">Composite score ${d.score}/100 · ${d.tier}</p>
+      </div>
+    </div>
+    ${bar('Education', d.edu)}
+    ${bar('Health', d.health)}
+    ${bar('Economic opportunity', d.econ)}
+    ${bar('Safety', d.safety)}
+  `;
+}
+
+function applyStyles(filterTier, highlightName) {
+  gCountries.selectAll('path')
+    .attr('fill', f => {
+      const name = f.properties.name;
+      const d = data[name];
+      if (filterTier !== 'all' && (!d || d.tier !== filterTier)) return 'var(--surface-1)';
+      return colorFor(name);
+    })
+    .attr('stroke', f => f.properties.name === highlightName ? 'var(--text-primary)' : 'rgba(255,255,255,.15)')
+    .attr('stroke-width', f => f.properties.name === highlightName ? 1.5 : 0.5);
+}
+
+function onFilter() {
+  applyStyles(document.getElementById('tier').value, null);
+}
+
+function onSearch() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  if (!q) { applyStyles(document.getElementById('tier').value, null); return; }
+  const match = allFeatures.find(f => f.properties.name.toLowerCase().includes(q));
+  if (match) {
+    applyStyles('all', match.properties.name);
+    renderDetail(match.properties.name);
+  }
+}
+
+svg = d3.select('#map').append('svg').attr('viewBox', `0 0 ${width} ${height}`).attr('width', '100%');
+const projection = d3.geoNaturalEarth1().scale(108).translate([width / 2, height / 2 + 10]);
+path = d3.geoPath(projection);
+gCountries = svg.append('g');
+
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
+  allFeatures = topojson.feature(world, world.objects.countries).features;
+  gCountries.selectAll('path')
+    .data(allFeatures)
+    .join('path')
+    .attr('d', path)
+    .attr('fill', f => colorFor(f.properties.name))
+    .attr('stroke', 'rgba(255,255,255,.15)')
+    .attr('stroke-width', 0.5)
+    .style('cursor', 'pointer')
+    .on('click', (event, f) => {
+      applyStyles(document.getElementById('tier').value, f.properties.name);
+      renderDetail(f.properties.name);
+    });
+});
+</script>
+</body>
+</html>
