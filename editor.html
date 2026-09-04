@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Civis Project — Editor</title>
+<style>
+  :root {
+    --bg: #0b0d11;
+    --surface-1: #1a1d24;
+    --surface-2: #20242c;
+    --surface-3: #262b34;
+    --border: #2a2e37;
+    --text-primary: #f2f2f0;
+    --text-secondary: #a8a9ad;
+    --text-muted: #6b6d73;
+    --text-accent: #5b8def;
+    --strong: #639922;
+    --stable: #1D9E75;
+    --strained: #EF9F27;
+    --critical: #E24B4A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: var(--surface-1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-header h1 {
+    font-size: 15px;
+    margin: 0 0 2px;
+  }
+
+  .sidebar-header .back {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .sidebar-header .back:hover { color: var(--text-accent); }
+
+  .sidebar-tools {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+  }
+
+  input:focus { outline: none; border-color: var(--text-accent); }
+
+  .btn {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn:hover { color: var(--text-primary); border-color: var(--text-accent); }
+
+  .btn.primary {
+    background: var(--text-accent);
+    border-color: var(--text-accent);
+    color: white;
+    font-weight: 600;
+  }
+
+  .btn.primary:hover { opacity: 0.9; }
+
+  .btn.danger:hover { border-color: var(--critical); color: var(--critical); }
+
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row .btn { flex: 1; }
+
+  .country-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+  }
+
+  .country-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    transition: background 0.12s ease;
+  }
+
+  .country-item:hover { background: var(--surface-2); }
+  .country-item.active { background: var(--surface-3); }
+
+  .country-item .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  .country-item .name { flex: 1; }
+  .country-item .score { color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .country-item .edited-badge {
+    font-size: 9px;
+    color: var(--text-accent);
+    border: 1px solid var(--text-accent);
+    border-radius: 4px;
+    padding: 1px 4px;
+  }
+
+  /* Main panel */
+  .main {
+    overflow-y: auto;
+    padding: 28px 40px 60px;
+  }
+
+  .empty-state {
+    color: var(--text-muted);
+    font-size: 14px;
+    padding-top: 80px;
+    text-align: center;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+  }
+
+  .panel-header h2 {
+    font-size: 24px;
+    margin: 0 0 4px;
+  }
+
+  .panel-header .tier-badge {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .field-group {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+
+  .field-group h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin: 0 0 16px;
+  }
+
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .score-field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .score-field input[type="range"] {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .score-field .val {
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .composite-row {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .composite-score {
+    font-size: 28px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .composite-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Editor toolbar */
+  .toolbar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar button {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .toolbar button:hover { color: var(--text-primary); border-color: var(--text-accent); }
+
+  #articleEditor {
+    min-height: 220px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  #articleEditor:focus { outline: none; border-color: var(--text-accent); }
+
+  #articleEditor h2, #articleEditor h3 { margin: 10px 0 6px; }
+  #articleEditor a { color: var(--text-accent); }
+
+  .save-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg);
+    padding: 14px 0 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .toast {
+    font-size: 13px;
+    color: var(--stable);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .toast.show { opacity: 1; }
+
+  .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>The Civis Project</h1>
+      <a class="back" href="index.html">← Back to map</a>
+    </div>
+    <div class="sidebar-tools">
+      <input type="text" id="searchCountries" placeholder="Search countries..." oninput="renderList()">
+      <div class="btn-row">
+        <button class="btn" onclick="addCountry()">+ Add country</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="exportData()">Export JSON</button>
+        <button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
+    </div>
+    <div class="country-list" id="countryList"></div>
+  </div>
+
+  <div class="main" id="main">
+    <div class="empty-state">Select a country from the list, or add a new one, to start editing.</div>
+  </div>
+</div>
+
+<script>
+const tierColor = {Strong:"#639922", Stable:"#1D9E75", Strained:"#EF9F27", Critical:"#E24B4A"};
+
+const defaultData = {
+  "Norway": {edu:91, health:94, econ:78, safety:82},
+  "Japan": {edu:95, health:96, econ:74, safety:88},
+  "Canada": {edu:88, health:90, econ:76, safety:79},
+  "Australia": {edu:87, health:90, econ:75, safety:78},
+  "Germany": {edu:85, health:89, econ:73, safety:80},
+  "South Korea": {edu:93, health:91, econ:62, safety:74},
+  "Poland": {edu:80, health:82, econ:64, safety:69},
+  "Chile": {edu:74, health:80, econ:58, safety:60},
+  "United States of America": {edu:78, health:72, econ:66, safety:52},
+  "Mexico": {edu:64, health:68, econ:52, safety:44},
+  "Brazil": {edu:62, health:66, econ:48, safety:40},
+  "Indonesia": {edu:60, health:63, econ:50, safety:44},
+  "South Africa": {edu:55, health:58, econ:38, safety:41},
+  "India": {edu:52, health:57, econ:44, safety:39},
+  "Egypt": {edu:50, health:60, econ:41, safety:38},
+  "Ethiopia": {edu:40, health:37, econ:28, safety:27},
+  "Nigeria": {edu:35, health:38, econ:26, safety:24},
+  "Haiti": {edu:28, health:30, econ:15, safety:12},
+  "Yemen": {edu:18, health:22, econ:9, safety:6},
+  "Afghanistan": {edu:15, health:20, econ:8, safety:5}
+};
+
+const STORAGE_KEY = 'civisProjectData';
+let overrides = {};
+let activeCountry = null;
+
+function loadOverrides() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    overrides = raw ? JSON.parse(raw) : {};
+  } catch (e) { overrides = {}; }
+}
+
+function saveOverrides() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+}
+
+function allCountryNames() {
+  const names = new Set([...Object.keys(defaultData), ...Object.keys(overrides)]);
+  return Array.from(names).sort();
+}
+
+function getCountryData(name) {
+  const base = defaultData[name] || { edu: 50, health: 50, econ: 50, safety: 50 };
+  return Object.assign({}, base, overrides[name] || {});
+}
+
+function computeTier(score) {
+  if (score >= 75) return 'Strong';
+  if (score >= 60) return 'Stable';
+  if (score >= 40) return 'Strained';
+  return 'Critical';
+}
+
+function computeScore(d) {
+  return Math.round((d.edu + d.health + d.econ + d.safety) / 4);
+}
+
+/* ---------- Sidebar list ---------- */
+function renderList() {
+  const q = document.getElementById('searchCountries').value.trim().toLowerCase();
+  const list = document.getElementById('countryList');
+  const names = allCountryNames().filter(n => n.toLowerCase().includes(q));
+  list.innerHTML = names.map(name => {
+    const d = getCountryData(name);
+    const score = computeScore(d);
+    const tier = computeTier(score);
+    const isEdited = !!overrides[name];
+    return `
+      <div class="country-item ${name === activeCountry ? 'active' : ''}" onclick="selectCountry('${name.replace(/'/g, "\\'")}')">
+        <span class="dot" style="background:${tierColor[tier]}"></span>
+        <span class="name">${name}</span>
+        <span class="score">${score}</span>
+        ${isEdited ? '<span class="edited-badge">edited</span>' : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function addCountry() {
+  const name = prompt('Country name (should match its name on the world map, e.g. "Vietnam"):');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if (!overrides[trimmed] && !defaultData[trimmed]) {
+    overrides[trimmed] = { edu: 50, health: 50, econ: 50, safety: 50, article: '' };
+    saveOverrides();
+  }
+  renderList();
+  selectCountry(trimmed);
+}
+
+/* ---------- Main editing panel ---------- */
+function selectCountry(name) {
+  activeCountry = name;
+  renderList();
+  const d = getCountryData(name);
+  const score = computeScore(d);
+  const tier = computeTier(score);
+  const main = document.getElementById('main');
+
+  main.innerHTML = `
+    <div class="panel-header">
+      <div>
+        <h2>${name}</h2>
+        <span class="tier-badge" style="background:${tierColor[tier]}22; color:${tierColor[tier]}">${tier} · ${score}/100</span>
+      </div>
+      <button class="btn danger" onclick="deleteOverride('${name.replace(/'/g, "\\'")}')">Revert to default</button>
+    </div>
+
+    <div class="field-group">
+      <h3>Indicator scores</h3>
+      <div class="score-grid">
+        ${scoreField('edu', 'Education', d.edu)}
+        ${scoreField('health', 'Health', d.health)}
+        ${scoreField('econ', 'Economic opportunity', d.econ)}
+        ${scoreField('safety', 'Safety', d.safety)}
+      </div>
+      <div class="composite-row">
+        <div class="composite-score" id="compositeScore">${score}</div>
+        <div>
+          <div class="composite-label">Composite score (average of the four, auto-calculated)</div>
+          <div class="composite-label" id="compositeTier" style="color:${tierColor[tier]}">${tier}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <h3>Country brief</h3>
+      <div class="toolbar">
+        <button onclick="fmt('bold')" title="Bold"><b>B</b></button>
+        <button onclick="fmt('italic')" title="Italic"><i>I</i></button>
+        <button onclick="fmt('formatBlock','H2')" title="Heading">H2</button>
+        <button onclick="fmt('insertUnorderedList')" title="Bullet list">•—</button>
+        <button onclick="fmt('insertOrderedList')" title="Numbered list">1.</button>
+        <button onclick="makeLink()" title="Link">🔗</button>
+        <button onclick="fmt('removeFormat')" title="Clear formatting">✕</button>
+      </div>
+      <div id="articleEditor" contenteditable="true">${d.article || ''}</div>
+      <div class="hint">This shows up as a "Country brief" section when someone clicks ${name} on the map.</div>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn primary" onclick="saveCountry('${name.replace(/'/g, "\\'")}')">Save changes</button>
+      <span class="toast" id="toast">Saved ✓</span>
+    </div>
+  `;
+}
+
+function scoreField(key, label, value) {
+  return `
+    <div class="score-field">
+      <label>${label}</label>
+      <input type="range" min="0" max="100" value="${value}" id="field-${key}" oninput="onScoreChange()">
+      <div class="val" id="val-${key}">${value}</div>
+    </div>
+  `;
+}
+
+function onScoreChange() {
+  const edu = parseInt(document.getElementById('field-edu').value, 10);
+  const health = parseInt(document.getElementById('field-health').value, 10);
+  const econ = parseInt(document.getElementById('field-econ').value, 10);
+  const safety = parseInt(document.getElementById('field-safety').value, 10);
+  document.getElementById('val-edu').textContent = edu;
+  document.getElementById('val-health').textContent = health;
+  document.getElementById('val-econ').textContent = econ;
+  document.getElementById('val-safety').textContent = safety;
+  const score = computeScore({ edu, health, econ, safety });
+  const tier = computeTier(score);
+  document.getElementById('compositeScore').textContent = score;
+  document.getElementById('compositeScore').style.color = tierColor[tier];
+  const tierEl = document.getElementById('compositeTier');
+  tierEl.textContent = tier;
+  tierEl.style.color = tierColor[tier];
+}
+
+function fmt(command, value) {
+  document.getElementById('articleEditor').focus();
+  document.execCommand(command, false, value || null);
+}
+
+function makeLink() {
+  const url = prompt('Link URL:');
+  if (url) fmt('createLink', url);
+}
+
+function saveCountry(name) {
+  const edu = parseInt(document.getElementById('field-edu').value, 10);
+  const health = parseInt(document.getElementById('field-health').value, 10);
+  const econ = parseInt(document.getElementById('field-econ').value, 10);
+  const safety = parseInt(document.getElementById('field-safety').value, 10);
+  const article = document.getElementById('articleEditor').innerHTML;
+  const score = computeScore({ edu, health, econ, safety });
+  const tier = computeTier(score);
+
+  overrides[name] = { edu, health, econ, safety, score, tier, article };
+  saveOverrides();
+  renderList();
+
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+function deleteOverride(name) {
+  if (!confirm(`Revert "${name}" to its default values and clear its article? This can't be undone.`)) return;
+  delete overrides[name];
+  saveOverrides();
+  if (defaultData[name]) {
+    selectCountry(name);
+  } else {
+    activeCountry = null;
+    document.getElementById('main').innerHTML = '<div class="empty-state">Select a country from the list, or add a new one, to start editing.</div>';
+  }
+  renderList();
+}
+
+/* ---------- Export / Import ---------- */
+function exportData() {
+  const blob = new Blob([JSON.stringify(overrides, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'civis-project-data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      overrides = Object.assign({}, overrides, parsed);
+      saveOverrides();
+      renderList();
+      alert('Import successful.');
+    } catch (err) {
+      alert('That file could not be read as valid JSON.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+loadOverrides();
+renderList();
+</script>
+</body>
+</html>
