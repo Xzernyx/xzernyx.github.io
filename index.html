@@ -270,9 +270,43 @@
   }
 
   #detail.open {
-    max-height: 400px;
+    max-height: 900px;
     opacity: 1;
     padding: 1.1rem 1.25rem 1.25rem;
+    overflow-y: auto;
+  }
+
+  .article-box {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .article-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .article-content {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--text-primary);
+  }
+
+  .article-content h2, .article-content h3 {
+    font-size: 15px;
+    margin: 12px 0 6px;
+  }
+
+  .article-content a {
+    color: var(--text-accent);
+  }
+
+  .article-content ul, .article-content ol {
+    padding-left: 20px;
   }
 
   .bar-row { margin-bottom: 10px; }
@@ -461,6 +495,7 @@
 
   <footer>
     Prototype built with D3.js and world-atlas boundary data. Country scores shown are placeholders for demonstration only and are not sourced from UNICEF. Data source links above point to UNICEF's real public data portal.
+    <br><a href="editor.html" style="color:var(--text-muted);">Editor access →</a>
   </footer>
 
 </div>
@@ -468,7 +503,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script>
-const data = {
+const defaultData = {
   "Norway": {score:86, tier:"Strong", edu:91, health:94, econ:78, safety:82},
   "Japan": {score:83, tier:"Strong", edu:95, health:96, econ:74, safety:88},
   "Canada": {score:81, tier:"Strong", edu:88, health:90, econ:76, safety:79},
@@ -490,6 +525,15 @@ const data = {
   "Yemen": {score:14, tier:"Critical", edu:18, health:22, econ:9, safety:6},
   "Afghanistan": {score:12, tier:"Critical", edu:15, health:20, econ:8, safety:5}
 };
+
+const STORAGE_KEY = 'civisProjectData';
+function loadOverrides() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) { return {}; }
+}
+const data = Object.assign({}, defaultData, loadOverrides());
 const tierColor = {Strong:"#639922", Stable:"#1D9E75", Strained:"#EF9F27", Critical:"#E24B4A"};
 const NO_DATA = "#565a63";
 const tiers = ["Strong", "Stable", "Strained", "Critical"];
@@ -578,6 +622,7 @@ function renderDetail(name) {
     ${bar('Health', d.health)}
     ${bar('Economic opportunity', d.econ)}
     ${bar('Safety', d.safety)}
+    ${d.article ? `<div class="article-box"><div class="article-label">Country brief</div><div class="article-content">${d.article}</div></div>` : ''}
   `;
   el.classList.add('open');
   // trigger bar animations next frame
