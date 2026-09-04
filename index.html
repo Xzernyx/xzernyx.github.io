@@ -206,6 +206,40 @@
     filter: brightness(1.18);
   }
 
+  #map { cursor: grab; }
+  #map:active { cursor: grabbing; }
+
+  .zoom-controls {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 5;
+  }
+
+  .zoom-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+
+  .zoom-btn:hover {
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+  }
+
   .tooltip {
     position: absolute;
     pointer-events: none;
@@ -382,6 +416,11 @@
   <div class="map-card">
     <div id="map" style="width:100%; position:relative;"></div>
     <div class="tooltip" id="tooltip"></div>
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick="zoomBy(1.5)" title="Zoom in">+</button>
+      <button class="zoom-btn" onclick="zoomBy(1/1.5)" title="Zoom out">−</button>
+      <button class="zoom-btn" onclick="zoomReset()" title="Reset zoom">⤾</button>
+    </div>
   </div>
 
   <div id="detail"></div>
@@ -505,6 +544,7 @@ function resetView() {
   document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
   closeDetail();
   applyStyles();
+  zoomReset();
 }
 
 /* ---------- Detail panel ---------- */
@@ -559,17 +599,18 @@ function applyStyles() {
     .attr('stroke-width', f => f.properties.name === selectedName ? 1.8 : 0.5);
 }
 
-function selectCountry(name) {
+function selectCountry(name, shouldZoom) {
   selectedName = name;
   applyStyles();
   renderDetail(name);
+  if (shouldZoom) zoomToCountry(name);
 }
 
 function onSearch() {
   const q = document.getElementById('search').value.trim().toLowerCase();
   if (!q) { selectedName = null; applyStyles(); closeDetail(); return; }
   const match = allFeatures.find(f => f.properties.name.toLowerCase().includes(q));
-  if (match) selectCountry(match.properties.name);
+  if (match) selectCountry(match.properties.name, true);
 }
 
 /* ---------- Build map ---------- */
@@ -579,6 +620,41 @@ path = d3.geoPath(projection);
 gCountries = svg.append('g');
 const tooltip = document.getElementById('tooltip');
 const mapContainer = document.getElementById('map');
+
+/* Zoom behavior */
+let currentZoom = d3.zoomIdentity;
+const zoomBehavior = d3.zoom()
+  .scaleExtent([1, 10])
+  .translateExtent([[0, 0], [width, height]])
+  .on('zoom', (event) => {
+    currentZoom = event.transform;
+    gCountries.attr('transform', currentZoom);
+    gCountries.selectAll('path').attr('stroke-width', d => (d && d.properties.name === selectedName ? 1.8 : 0.5) / currentZoom.k);
+  });
+
+svg.call(zoomBehavior);
+
+function zoomBy(factor) {
+  svg.transition().duration(300).call(zoomBehavior.scaleBy, factor);
+}
+
+function zoomReset() {
+  svg.transition().duration(400).call(zoomBehavior.transform, d3.zoomIdentity);
+}
+
+function zoomToCountry(name) {
+  const feature = allFeatures.find(f => f.properties.name === name);
+  if (!feature) return;
+  const [[x0, y0], [x1, y1]] = path.bounds(feature);
+  const dx = x1 - x0, dy = y1 - y0;
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const scale = Math.max(1, Math.min(8, 0.7 / Math.max(dx / width, dy / height)));
+  const translate = [width / 2 - scale * cx, height / 2 - scale * cy];
+  svg.transition().duration(500).call(
+    zoomBehavior.transform,
+    d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+  );
+}
 
 buildStats();
 
@@ -604,7 +680,7 @@ d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(w
         : `<strong>${f.properties.name}</strong> — no data`;
     })
     .on('mouseleave', () => { tooltip.style.opacity = 0; })
-    .on('click', (event, f) => selectCountry(f.properties.name))
+    .on('click', (event, f) => { event.stopPropagation(); selectCountry(f.properties.name, true); })
     .transition()
     .delay((d, i) => i * 1.2)
     .duration(500)
