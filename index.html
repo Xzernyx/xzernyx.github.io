@@ -35,17 +35,20 @@
   }
 
   html {
-  /* Matches your base background color */
-  background-color: #12151f;
+  /* Set base color and cover the canvas area including overscroll */
+  background-color: #0b0d11;
+  background: radial-gradient(circle at 20% -10%, #131722 0%, var(--bg) 55%);
+  background-attachment: fixed; /* Ensures the gradient stays pinned during elastic bounce */
+  min-height: 100%;
 }
 
-  body {
-    margin: 0;
-    padding: 40px 20px 60px;
-    background: radial-gradient(circle at 20% -10%, #131722 0%, var(--bg) 55%);
-    color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
+body {
+  margin: 0;
+  padding: 40px 20px 60px;
+  background: transparent; /* Remove background from body to avoid overlapping borders */
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
 
   .wrap {
     max-width: 980px;
