@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Civis Project — Articles</title>
+<style>
+  :root {
+    --bg: #0b0d11;
+    --bg-2: #0f1218;
+    --surface-1: #1a1d24;
+    --surface-2: #20242c;
+    --surface-3: #262b34;
+    --border: #2a2e37;
+    --text-primary: #f2f2f0;
+    --text-secondary: #a8a9ad;
+    --text-muted: #6b6d73;
+    --text-accent: #5b8def;
+    --strong: #639922;
+    --stable: #1D9E75;
+    --strained: #EF9F27;
+    --critical: #E24B4A;
+  }
+
+  * { box-sizing: border-box; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  body {
+    margin: 0;
+    padding: 40px 20px 60px;
+    background: radial-gradient(circle at 20% -10%, #131722 0%, var(--bg) 55%);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  header {
+    animation: fadeUp 0.5s ease both;
+    margin-bottom: 24px;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    color: var(--text-accent);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: 30px;
+    font-weight: 650;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 14.5px;
+    margin: 0;
+    max-width: 640px;
+    line-height: 1.5;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-top: 22px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 10px 4px;
+    margin-right: 20px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .tab:hover { color: var(--text-primary); }
+
+  .tab.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--text-accent);
+  }
+
+  /* Auth bar */
+  #authBar {
+    position: fixed;
+    top: 18px;
+    left: 20px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .enter-btn {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .enter-btn:hover { color: var(--text-primary); border-color: var(--text-accent); }
+
+  .enter-pill {
+    display: inline-block;
+    text-decoration: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .enter-pill.authorized {
+    background: rgba(29,158,117,0.15);
+    color: var(--stable);
+    border: 1px solid rgba(29,158,117,0.35);
+  }
+
+  .enter-pill.denied {
+    background: rgba(226,75,74,0.12);
+    color: var(--critical);
+    border: 1px solid rgba(226,75,74,0.3);
+  }
+
+  .enter-signout {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* Filter Controls */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin: 24px 0 20px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .search-box {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .search-box svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+  }
+
+  input, select {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding-left: 34px;
+  }
+
+  select {
+    cursor: pointer;
+    padding-right: 28px;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--text-accent);
+    background: var(--surface-2);
+  }
+
+  /* Articles Feed Layout */
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    animation: fadeUp 0.6s ease 0.15s both;
+  }
+
+  .article-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .article-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--text-accent);
+    background: var(--surface-2);
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .article-scope {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-accent);
+    font-weight: 600;
+    background: rgba(91, 141, 239, 0.1);
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(91, 141, 239, 0.2);
+  }
+
+  .article-date {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  .article-title {
+    font-size: 16px;
+    font-weight: 650;
+    margin: 0 0 10px;
+    line-height: 1.35;
+    color: var(--text-primary);
+  }
+
+  .article-body {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  footer {
+    margin-top: 50px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div id="authBar"></div>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Insights & Analysis</div>
+    <h1>Civis Briefs & Articles</h1>
+    <p class="subtitle">Explore global reports, policy analyses, and country-specific updates published across the Civis network.</p>
+    <nav class="tabs">
+      <a href="index.html" class="tab">Map</a>
+      <a href="articles.html" class="tab active">Articles</a>
+      <a href="about.html" class="tab">About &amp; Methodology</a>
+    </nav>
+  </header>
+
+  <div class="controls">
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="text" placeholder="Search articles by title or text..." oninput="filterArticles()">
+    </div>
+    <select id="scopeFilter" onchange="filterArticles()">
+      <option value="ALL">All Scopes</option>
+      <option value="Global">Global</option>
+    </select>
+  </div>
+
+  <div class="articles-grid" id="articlesGrid">
+    <div class="empty-state">Loading articles...</div>
+  </div>
+
+  <footer>
+    The Civis Project — Articles &amp; Insights
+    <br><a href="editor.html" style="color:var(--text-muted);">Editor access →</a>
+  </footer>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ============================================================
+   FIREBASE CONFIG — matches your index.html configuration
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyA8da9XPOQjtd64QZEeqAj1bn8k8xfvHAs",
+  authDomain: "civis-projecrt.firebaseapp.com",
+  projectId: "civis-projecrt",
+  storageBucket: "civis-projecrt.firebasestorage.app",
+  messagingSenderId: "522365050078",
+  appId: "1:522365050078:web:6a78b58eeda5b72b99364f"
+};
+const ALLOWED_EDITOR_EMAIL = "chazlancemoore26@gmail.com";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+/* ---------- Auth Bar Implementation ---------- */
+function renderAuthBar(user) {
+  const el = document.getElementById('authBar');
+  if (!user) {
+    el.innerHTML = `<button class="enter-btn" onclick="window.civisSignIn()">Enter</button>`;
+    return;
+  }
+  if (user.email === ALLOWED_EDITOR_EMAIL) {
+    el.innerHTML = `
+      <a href="editor.html" class="enter-pill authorized">Editor ✓</a>
+      <button class="enter-signout" onclick="window.civisSignOut()">Sign out</button>
+    `;
+  } else {
+    el.innerHTML = `
+      <span class="enter-pill denied">Not authorized</span>
+      <button class="enter-signout" onclick="window.civisSignOut()">Sign out</button>
+    `;
+  }
+}
+
+window.civisSignIn = () => signInWithPopup(auth, provider).catch(err => alert('Sign-in failed: ' + err.message));
+window.civisSignOut = () => signOut(auth);
+onAuthStateChanged(auth, renderAuthBar);
+
+/* ---------- Articles State Management ---------- */
+let rawArticles = [];
+
+function populateScopeDropdown(articles) {
+  const select = document.getElementById('scopeFilter');
+  const scopes = new Set(['Global']);
+  articles.forEach(a => { if (a.scope) scopes.add(a.scope); });
+  
+  const currentVal = select.value;
+  select.innerHTML = '<option value="ALL">All Scopes</option>' + 
+    Array.from(scopes).sort().map(s => `<option value="${s}">${s}</option>`).join('');
+  
+  if (Array.from(select.options).some(opt => opt.value === currentVal)) {
+    select.value = currentVal;
+  }
+}
+
+function filterArticles() {
+  const searchTerm = document.getElementById('search').value.toLowerCase().trim();
+  const selectedScope = document.getElementById('scopeFilter').value;
+  
+  const filtered = rawArticles.filter(article => {
+    const matchesSearch = !searchTerm || 
+      (article.title && article.title.toLowerCase().includes(searchTerm)) ||
+      (article.body && article.body.toLowerCase().includes(searchTerm));
+      
+    const matchesScope = selectedScope === 'ALL' || article.scope === selectedScope;
+    
+    return matchesSearch && matchesScope;
+  });
+
+  renderArticles(filtered);
+}
+
+function renderArticles(articles) {
+  const grid = document.getElementById('articlesGrid');
+  if (!articles || articles.length === 0) {
+    grid.innerHTML = `<div class="empty-state">No articles found matching your criteria.</div>`;
+    return;
+  }
+
+  grid.innerHTML = articles.map(a => {
+    const dateStr = a.publishedAt && a.publishedAt.toDate ? a.publishedAt.toDate().toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }) : 'Recent';
+
+    return `
+      <article class="article-card">
+        <div>
+          <div class="article-meta">
+            <span class="article-scope">${a.scope || 'Global'}</span>
+            <span class="article-date">${dateStr}</span>
+          </div>
+          <h2 class="article-title">${a.title || 'Untitled Brief'}</h2>
+          <div class="article-body">${a.body || ''}</div>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+/* ---------- Firestore Sync ---------- */
+const q = query(collection(db, 'articles'), orderBy('publishedAt', 'desc'));
+
+onSnapshot(q, (snapshot) => {
+  rawArticles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  populateScopeDropdown(rawArticles);
+  filterArticles();
+}, (error) => {
+  console.warn('Firestore articles stream offline or indexing:', error);
+  document.getElementById('articlesGrid').innerHTML = `
+    <div class="empty-state">Unable to load live articles right now. Check back shortly.</div>
+  `;
+});
+
+window.filterArticles = filterArticles;
+</script>
+</body>
+</html>
