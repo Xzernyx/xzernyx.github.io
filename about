@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Civis Project — About &amp; Methodology</title>
+<style>
+  :root {
+    --bg: #0b0d11;
+    --surface-1: #1a1d24;
+    --surface-2: #20242c;
+    --border: #2a2e37;
+    --text-primary: #f2f2f0;
+    --text-secondary: #a8a9ad;
+    --text-muted: #6b6d73;
+    --text-accent: #5b8def;
+    --strong: #639922;
+    --stable: #1D9E75;
+    --strained: #EF9F27;
+    --critical: #E24B4A;
+  }
+
+  * { box-sizing: border-box; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  body {
+    margin: 0;
+    padding: 40px 20px 60px;
+    background: radial-gradient(circle at 20% -10%, #131722 0%, var(--bg) 55%);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .wrap {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  header { animation: fadeUp 0.5s ease both; margin-bottom: 28px; }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    color: var(--text-accent);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  h1 { font-size: 30px; font-weight: 650; margin: 0 0 6px; letter-spacing: -0.01em; }
+
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 14.5px;
+    margin: 0;
+    max-width: 640px;
+    line-height: 1.5;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-top: 22px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 10px 4px;
+    margin-right: 20px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .tab:hover { color: var(--text-primary); }
+
+  .tab.active { color: var(--text-primary); border-bottom-color: var(--text-accent); }
+
+  section {
+    animation: fadeUp 0.6s ease 0.1s both;
+    margin-bottom: 34px;
+  }
+
+  section h2 {
+    font-size: 19px;
+    margin: 0 0 10px;
+    letter-spacing: -0.005em;
+  }
+
+  section p {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  section p strong { color: var(--text-primary); }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+  }
+
+  .weight-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .weight-card {
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .weight-pct {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .weight-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .formula-box {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+    margin: 14px 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  td.indicator { color: var(--text-primary); font-weight: 500; }
+
+  .cat-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .cat-block { margin-bottom: 26px; }
+  .cat-block:last-child { margin-bottom: 0; }
+
+  .direction-badge {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+  }
+
+  .callout {
+    border-left: 3px solid var(--text-accent);
+    background: var(--surface-2);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-top: 16px;
+  }
+
+  .callout strong { color: var(--text-primary); }
+
+  footer {
+    margin-top: 36px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  footer a { color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Prototype</div>
+    <h1>About &amp; Methodology</h1>
+    <p class="subtitle">Why this project exists, and exactly how a country's score is calculated.</p>
+    <nav class="tabs">
+      <a href="index.html" class="tab">Map</a>
+      <a href="about.html" class="tab active">About &amp; Methodology</a>
+    </nav>
+  </header>
+
+  <section>
+    <h2>Mission</h2>
+    <p>The Civis Project exists to make youth living conditions <strong>visible, comparable, and trackable over time</strong> — the same way tools like the CIVICUS Monitor made civic space visible on a single map. Where CIVICUS tracks the health of civil society, this project tracks the health of childhood and adolescence itself: whether a young person growing up in a given country has access to healthcare, education, economic opportunity, and physical safety.</p>
+    <p>The long-term goal is not just a map, but a <strong>longitudinal record</strong> — a way to see whether conditions for young people in a given country are improving or declining, year over year, grounded in real, publicly available UNICEF data rather than anecdote or headline-driven perception.</p>
+  </section>
+
+  <section>
+    <h2>Why an absolute, benchmark-anchored score</h2>
+    <p>Country scores in this project are <strong>not</strong> ranked relative to each other. A country's score doesn't move just because another country's data improved or worsened. Instead, every indicator is scored against a fixed, real-world benchmark — usually a UN Sustainable Development Goal target or a WHO/UNICEF reference threshold — so that a score of 70 means the same thing this year as it will in five years.</p>
+    <p>This trade-off costs some visual range early on (most countries may cluster in a similar band rather than spreading across the full color scale), but it's the only approach that lets the map honestly answer the question that actually matters: <strong>is this country's youth getting a better or worse deal over time?</strong></p>
+  </section>
+
+  <section>
+    <h2>The composite formula</h2>
+    <div class="card">
+      <p style="margin-bottom:6px;">Each country's composite score is a weighted average of four category scores:</p>
+      <div class="weight-grid">
+        <div class="weight-card" style="border-color:#639922"><div class="weight-pct" style="color:#639922">30%</div><div class="weight-label">Health</div></div>
+        <div class="weight-card" style="border-color:#1D9E75"><div class="weight-pct" style="color:#1D9E75">30%</div><div class="weight-label">Education</div></div>
+        <div class="weight-card" style="border-color:#E24B4A"><div class="weight-pct" style="color:#E24B4A">25%</div><div class="weight-label">Safety</div></div>
+        <div class="weight-card" style="border-color:#EF9F27"><div class="weight-pct" style="color:#EF9F27">15%</div><div class="weight-label">Economic Opp.</div></div>
+      </div>
+      <p style="margin-top:18px;">Health and Education are weighted highest, both because they reflect UNICEF's own core priorities and because they have the deepest, most reliable data coverage across countries. Economic Opportunity is weighted lowest because UNICEF has no dedicated indicator for it — this project uses child poverty and youth NEET rates as a proxy, which is one step removed from what it's actually meant to measure.</p>
+
+      <p style="margin-top:18px;">Each raw UNICEF indicator is converted to a 0–100 score using:</p>
+      <div class="formula-box">indicator_score = 100 × (raw_value − floor) / (ceiling − floor)
+&#8203;                  clamped to the range [0, 100]
+
+(for "lower is better" indicators, floor and ceiling are inverted)</div>
+      <p>Category scores are the average of their available indicator scores. The composite score is the weighted average of the four category scores, using the weights above.</p>
+
+      <div class="callout">
+        <strong>Handling missing data:</strong> If a country is missing an entire category, that category is dropped and the remaining weights are scaled up proportionally so they still sum to 100%. Alongside the composite score, a <strong>data completeness percentage</strong> is shown (categories with real data ÷ 4), so a score built on partial data is never presented with the same confidence as a fully-supported one.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Indicators, sources, and benchmarks</h2>
+    <p>These are the specific UNICEF (and UN/WHO/ILO joint) indicators behind each category, along with the floor and ceiling each one is scored against. Floors marked "estimated" are working starting points based on historically observed worst-case values and should be revisited against current UNICEF data before final publication.</p>
+
+    <div class="card">
+      <div class="cat-block">
+        <span class="cat-tag" style="background:#63992222; color:#639922;">Health · 30%</span>
+        <table>
+          <tr><th>Indicator</th><th>Floor</th><th>Ceiling</th><th>Direction</th></tr>
+          <tr><td class="indicator">Under-5 mortality rate (per 1,000 live births)</td><td>200 (est.)</td><td>25 — SDG target 3.2</td><td><span class="direction-badge">Lower is better</span></td></tr>
+          <tr><td class="indicator">Adolescent birth rate (per 1,000 women 15–19)</td><td>200 (est.)</td><td>2 (est.)</td><td><span class="direction-badge">Lower is better</span></td></tr>
+          <tr><td class="indicator">UHC Service Coverage Index</td><td>0</td><td>100</td><td><span class="direction-badge">Higher is better</span></td></tr>
+        </table>
+      </div>
+
+      <div class="cat-block">
+        <span class="cat-tag" style="background:#1D9E7522; color:#1D9E75;">Education · 30%</span>
+        <table>
+          <tr><th>Indicator</th><th>Floor</th><th>Ceiling</th><th>Direction</th></tr>
+          <tr><td class="indicator">Adjusted net attendance rate, lower secondary (%)</td><td>0</td><td>100 — SDG target 4.1</td><td><span class="direction-badge">Higher is better</span></td></tr>
+          <tr><td class="indicator">Primary/secondary completion rate (%)</td><td>0</td><td>100</td><td><span class="direction-badge">Higher is better</span></td></tr>
+          <tr><td class="indicator">Youth literacy rate, ages 15–24 (%)</td><td>0</td><td>100</td><td><span class="direction-badge">Higher is better</span></td></tr>
+        </table>
+      </div>
+
+      <div class="cat-block">
+        <span class="cat-tag" style="background:#E24B4A22; color:#E24B4A;">Safety &amp; Protection · 25%</span>
+        <table>
+          <tr><th>Indicator</th><th>Floor</th><th>Ceiling</th><th>Direction</th></tr>
+          <tr><td class="indicator">Child marriage prevalence, women 20–24 married before 18 (%)</td><td>75 (est.)</td><td>0 — SDG target 5.3</td><td><span class="direction-badge">Lower is better</span></td></tr>
+          <tr><td class="indicator">Birth registration rate, under-5 (%)</td><td>0</td><td>100</td><td><span class="direction-badge">Higher is better</span></td></tr>
+          <tr><td class="indicator">Violent discipline prevalence, ages 1–14 (%)</td><td>90 (est.)</td><td>0 — SDG target 16.2</td><td><span class="direction-badge">Lower is better</span></td></tr>
+        </table>
+      </div>
+
+      <div class="cat-block">
+        <span class="cat-tag" style="background:#EF9F2722; color:#EF9F27;">Economic Opportunity · 15%</span>
+        <table>
+          <tr><th>Indicator</th><th>Floor</th><th>Ceiling</th><th>Direction</th></tr>
+          <tr><td class="indicator">Child multidimensional poverty rate (%)</td><td>90 (est.)</td><td>0</td><td><span class="direction-badge">Lower is better</span></td></tr>
+          <tr><td class="indicator">Youth NEET rate (%)</td><td>50 (est.)</td><td>0 — SDG target 8.6</td><td><span class="direction-badge">Lower is better</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Update cadence</h2>
+    <p>Scores are intended to be refreshed <strong>annually</strong>, matching the pace at which most underlying UNICEF indicators are actually updated. Floors and ceilings are treated as fixed reference points and are not adjusted during a normal annual refresh — they should only change if an underlying benchmark itself changes (for example, if a future SDG framework revises a target), so that scores stay comparable across years.</p>
+  </section>
+
+  <section>
+    <h2>What this project is not</h2>
+    <p>This is an independent project. It is not affiliated with, endorsed by, or produced by UNICEF — it draws on UNICEF's public datasets and applies its own composite methodology on top of them. Scores currently displayed on the map are placeholder values for prototyping and do not yet reflect real UNICEF data.</p>
+  </section>
+
+  <footer>
+    Data source pages: <a href="https://data.unicef.org/" target="_blank" rel="noopener">UNICEF Data</a> · <a href="https://data.unicef.org/adp/" target="_blank" rel="noopener">Adolescent Data Portal</a> · <a href="https://data.unicef.org/sdgs/" target="_blank" rel="noopener">SDGs for Children</a>
+    <br><a href="editor.html">Editor access →</a>
+  </footer>
+
+</div>
+</body>
+</html>
