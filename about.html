@@ -233,18 +233,18 @@
 
   <section>
     <h2>Mission</h2>
-    <p>The Civis Project exists to make youth living conditions <strong>visible, comparable, and trackable over time</strong> — the same way tools like the CIVICUS Monitor made civic space visible on a single map. Where CIVICUS tracks the health of civil society, this project tracks the health of childhood and adolescence itself: whether a young person growing up in a given country has access to healthcare, education, economic opportunity, and physical safety.</p>
-    <p>The long-term goal is not just a map, but a <strong>longitudinal record</strong> — a way to see whether conditions for young people in a given country are improving or declining, year over year, grounded in real, publicly available UNICEF data rather than anecdote or headline-driven perception.</p>
+    <p>The Civis Project exists to make youth living conditions <strong>visible, comparable, and trackable over time</strong>, similar to tools like the CIVICUS Monitor, which made civic space visible on a single map. Where CIVICUS tracks the health of civil society, this project tracks the health of childhood and adolescence itself: whether a young person growing up in a given country has access to healthcare, education, economic opportunity, and physical safety.</p>
+    <p>The long-term goal is not just a map. This Civis Project aims to serve as a <strong>longitudinal database</strong> for easy access, a way to see whether conditions for young people in a given country are improving or declining, year over year. Instead of anecdotes or headline-driven perception, The Civis Project is grounded in real, publicly available UNICEF data.</p>
   </section>
 
   <section>
-    <h2>Why an absolute, benchmark-anchored score</h2>
-    <p>Country scores in this project are <strong>not</strong> ranked relative to each other. A country's score doesn't move just because another country's data improved or worsened. Instead, every indicator is scored against a fixed, real-world benchmark — usually a UN Sustainable Development Goal target or a WHO/UNICEF reference threshold — so that a score of 70 means the same thing this year as it will in five years.</p>
-    <p>This trade-off costs some visual range early on (most countries may cluster in a similar band rather than spreading across the full color scale), but it's the only approach that lets the map honestly answer the question that actually matters: <strong>is this country's youth getting a better or worse deal over time?</strong></p>
+    <h2>Why An Absolute, Benchmark-Anchored Score?</h2>
+    <p>The perfect formula for analyzing youth living conditions across borders is nonexistent; this would suppose a universal standard of life that breaks traditions and makes generalized assumptions about each country. When writing the prototype formula for country diagnostics, we decided that an absolute benchmark-anchored score was the best approach to achieving our ends holistically and honestly. Country scores in this project are <strong>not</strong> ranked relative to each other: a country's score doesn't move just because another country's data improved or worsened. Instead, every indicator is scored against a fixed, real-world benchmark—usually a UN Sustainable Development Goal target or a WHO/UNICEF reference threshold—so that a score of 70 means the same thing this year as it will in five years.</p>
+    <p>This trade-off costs some visual range early on (most countries may cluster in a similar band rather than spreading across the full color scale). Still, it's the only approach that lets the map honestly answer the question that actually matters: <strong>is this country's youth getting a better or worse deal over time?</strong> Of course, this formula will adjust and change in the near future to better accommodate the changes in technology, culture, and quality of life that arise in the near future. The formula is also susceptible to changes in methods of measuring and comparing data, which, if adjusted, will be made publicly available and transparent.</p>
   </section>
 
   <section>
-    <h2>The composite formula</h2>
+    <h2>The Composite Formula</h2>
     <div class="card">
       <p style="margin-bottom:6px;">Each country's composite score is a weighted average of four category scores:</p>
       <div class="weight-grid">
@@ -253,7 +253,7 @@
         <div class="weight-card" style="border-color:#E24B4A"><div class="weight-pct" style="color:#E24B4A">25%</div><div class="weight-label">Safety</div></div>
         <div class="weight-card" style="border-color:#EF9F27"><div class="weight-pct" style="color:#EF9F27">15%</div><div class="weight-label">Economic Opp.</div></div>
       </div>
-      <p style="margin-top:18px;">Health and Education are weighted highest, both because they reflect UNICEF's own core priorities and because they have the deepest, most reliable data coverage across countries. Economic Opportunity is weighted lowest because UNICEF has no dedicated indicator for it — this project uses child poverty and youth NEET rates as a proxy, which is one step removed from what it's actually meant to measure.</p>
+      <p style="margin-top:18px;">Health and Education are weighted highest, both because they reflect UNICEF's own core priorities and because they have the deepest, most reliable data coverage across countries. Economic Opportunity is weighted lowest because UNICEF has no dedicated indicator for it. This project uses child poverty and youth NEET rates as a proxy, which is one step removed from what it's actually meant to measure.</p>
 
       <p style="margin-top:18px;">Each raw UNICEF indicator is converted to a 0–100 score using:</p>
       <div class="formula-box">indicator_score = 100 × (raw_value − floor) / (ceiling − floor)
@@ -269,7 +269,7 @@
   </section>
 
   <section>
-    <h2>Indicators, sources, and benchmarks</h2>
+    <h2>Indicators, Sources, and Benchmarks</h2>
     <p>These are the specific UNICEF (and UN/WHO/ILO joint) indicators behind each category, along with the floor and ceiling each one is scored against. Floors marked "estimated" are working starting points based on historically observed worst-case values and should be revisited against current UNICEF data before final publication.</p>
 
     <div class="card">
@@ -315,18 +315,19 @@
   </section>
 
   <section>
-    <h2>Update cadence</h2>
-    <p>Scores are intended to be refreshed <strong>annually</strong>, matching the pace at which most underlying UNICEF indicators are actually updated. Floors and ceilings are treated as fixed reference points and are not adjusted during a normal annual refresh — they should only change if an underlying benchmark itself changes (for example, if a future SDG framework revises a target), so that scores stay comparable across years.</p>
+    <h2>Update Cadence</h2>
+    <p>Scores are intended to be refreshed <strong>annually</strong>, matching the pace at which most underlying UNICEF indicators are actually updated. Floors and ceilings are treated as fixed reference points and are not adjusted during a normal annual refresh—they should only change if an underlying benchmark itself changes (for example, if a future SDG framework revises a target), so that scores stay comparable across years.</p>
   </section>
 
   <section>
-    <h2>What this project is not</h2>
-    <p>This is an independent project. It is not affiliated with, endorsed by, or produced by UNICEF — it draws on UNICEF's public datasets and applies its own composite methodology on top of them. Scores currently displayed on the map are placeholder values for prototyping and do not yet reflect real UNICEF data.</p>
+    <h2>What This Project Is Not</h2>
+    <p>This is an independent project. It is not affiliated with, endorsed by, or produced by UNICEF. Instead, it simply draws on UNICEF's public datasets and applies its own composite methodology on top of them. Scores currently displayed on the map are placeholder values for prototyping and do not yet reflect real UNICEF data.</p>
   </section>
 
   <footer>
-    Data source pages: <a href="https://data.unicef.org/" target="_blank" rel="noopener">UNICEF Data</a> · <a href="https://data.unicef.org/adp/" target="_blank" rel="noopener">Adolescent Data Portal</a> · <a href="https://data.unicef.org/sdgs/" target="_blank" rel="noopener">SDGs for Children</a>
+    Data Source Pages: <a href="https://data.unicef.org/" target="_blank" rel="noopener">UNICEF Data</a> · <a href="https://data.unicef.org/adp/" target="_blank" rel="noopener">Adolescent Data Portal</a> · <a href="https://data.unicef.org/sdgs/" target="_blank" rel="noopener">SDGs for Children</a>
     <br><a href="editor.html">Editor access →</a>
+    Project headed and created by Chazlance Moore, 2026. All rights reserved. To reach out with questions, comments, or concerns, email Chazlancemoore26@gmail.com
   </footer>
 
 </div>
