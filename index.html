@@ -101,6 +101,61 @@
     border-bottom-color: var(--text-accent);
   }
 
+  /* Auth bar */
+  #authBar {
+    position: fixed;
+    top: 18px;
+    left: 20px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .enter-btn {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .enter-btn:hover { color: var(--text-primary); border-color: var(--text-accent); }
+
+  .enter-pill {
+    display: inline-block;
+    text-decoration: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .enter-pill.authorized {
+    background: rgba(29,158,117,0.15);
+    color: var(--stable);
+    border: 1px solid rgba(29,158,117,0.35);
+  }
+
+  .enter-pill.denied {
+    background: rgba(226,75,74,0.12);
+    color: var(--critical);
+    border: 1px solid rgba(226,75,74,0.3);
+  }
+
+  .enter-signout {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
   /* Stat cards */
   .stats {
     display: grid;
@@ -454,6 +509,7 @@
 </style>
 </head>
 <body>
+<div id="authBar"></div>
 <div class="wrap">
 
   <header>
@@ -462,6 +518,7 @@
     <p class="subtitle">Youth living conditions by country, scored from a composite of UNICEF-style indicators across health, education, economic opportunity, and safety. Scores shown here are placeholders for demonstration — real figures will be pulled from UNICEF's public datasets.</p>
     <nav class="tabs">
       <a href="index.html" class="tab active">Map</a>
+      <a href="articles.html" class="tab">Articles</a>
       <a href="about.html" class="tab">About &amp; Methodology</a>
     </nav>
   </header>
@@ -531,7 +588,55 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ============================================================
+   FIREBASE CONFIG — replace with your project's real config
+   (Firebase console → Project settings → Your apps)
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+const ALLOWED_EDITOR_EMAIL = "you@example.com"; // <-- replace with your actual Google account email
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+/* ---------- "Enter" auth bar ---------- */
+function renderAuthBar(user) {
+  const el = document.getElementById('authBar');
+  if (!user) {
+    el.innerHTML = `<button class="enter-btn" onclick="window.civisSignIn()">Enter</button>`;
+    return;
+  }
+  if (user.email === ALLOWED_EDITOR_EMAIL) {
+    el.innerHTML = `
+      <a href="editor.html" class="enter-pill authorized">Editor ✓</a>
+      <button class="enter-signout" onclick="window.civisSignOut()">Sign out</button>
+    `;
+  } else {
+    el.innerHTML = `
+      <span class="enter-pill denied">Not authorized</span>
+      <button class="enter-signout" onclick="window.civisSignOut()">Sign out</button>
+    `;
+  }
+}
+
+window.civisSignIn = () => signInWithPopup(auth, provider).catch(err => alert('Sign-in failed: ' + err.message));
+window.civisSignOut = () => signOut(auth);
+onAuthStateChanged(auth, renderAuthBar);
+
+/* ---------- Country data (defaults, live-overridden by Firestore) ---------- */
 const defaultData = {
   "Norway": {score:86, tier:"Strong", edu:91, health:94, econ:78, safety:82},
   "Japan": {score:83, tier:"Strong", edu:95, health:96, econ:74, safety:88},
@@ -555,14 +660,7 @@ const defaultData = {
   "Afghanistan": {score:12, tier:"Critical", edu:15, health:20, econ:8, safety:5}
 };
 
-const STORAGE_KEY = 'civisProjectData';
-function loadOverrides() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) { return {}; }
-}
-const data = Object.assign({}, defaultData, loadOverrides());
+const data = Object.assign({}, defaultData);
 const tierColor = {Strong:"#639922", Stable:"#1D9E75", Strained:"#EF9F27", Critical:"#E24B4A"};
 const NO_DATA = "#565a63";
 const tiers = ["Strong", "Stable", "Strained", "Critical"];
@@ -581,16 +679,15 @@ function colorFor(name) {
 /* ---------- Stat cards ---------- */
 function buildStats() {
   const counts = { Strong: 0, Stable: 0, Strained: 0, Critical: 0 };
-  Object.values(data).forEach(d => counts[d.tier]++);
+  Object.values(data).forEach(d => counts[d.tier] && counts[d.tier]++ || (counts[d.tier] = (counts[d.tier]||0)+1));
   const el = document.getElementById('stats');
   el.innerHTML = tiers.map(t => `
-    <div class="stat-card" id="stat-${t}" style="--stat-color:${tierColor[t]}" onclick="toggleTierFilter('${t}')">
+    <div class="stat-card" id="stat-${t}" style="--stat-color:${tierColor[t]}" onclick="window.toggleTierFilter('${t}')">
       <div class="bar"></div>
-      <div class="stat-count" data-target="${counts[t]}">0</div>
+      <div class="stat-count" data-target="${counts[t] || 0}">0</div>
       <div class="stat-label">${t}</div>
     </div>
   `).join('');
-  // animate count-up
   document.querySelectorAll('.stat-count').forEach(elCount => {
     const target = parseInt(elCount.dataset.target, 10);
     let cur = 0;
@@ -622,8 +719,7 @@ function resetView() {
 
 /* ---------- Detail panel ---------- */
 function closeDetail() {
-  const el = document.getElementById('detail');
-  el.classList.remove('open');
+  document.getElementById('detail').classList.remove('open');
 }
 
 function renderDetail(name) {
@@ -652,12 +748,41 @@ function renderDetail(name) {
     ${bar('Economic opportunity', d.econ)}
     ${bar('Safety', d.safety)}
     ${d.article ? `<div class="article-box"><div class="article-label">Country brief</div><div class="article-content">${d.article}</div></div>` : ''}
+    <div class="article-box" id="countryArticlesBox" style="display:none;">
+      <div class="article-label">Published articles</div>
+      <div id="countryArticles"></div>
+    </div>
   `;
   el.classList.add('open');
-  // trigger bar animations next frame
   requestAnimationFrame(() => {
     el.querySelectorAll('.bar-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
   });
+  loadCountryArticles(name);
+}
+
+/* ---------- Per-country articles (Firestore) ---------- */
+async function loadCountryArticles(name) {
+  const box = document.getElementById('countryArticlesBox');
+  const list = document.getElementById('countryArticles');
+  if (!box || !list) return;
+  try {
+    const q = query(collection(db, 'articles'), where('scope', '==', name), orderBy('publishedAt', 'desc'));
+    const snap = await getDocs(q);
+    if (snap.empty) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    list.innerHTML = snap.docs.map(docSnap => {
+      const a = docSnap.data();
+      const dateStr = a.publishedAt && a.publishedAt.toDate ? a.publishedAt.toDate().toLocaleDateString() : '';
+      return `<div style="margin-bottom:14px;">
+        <div style="font-size:13.5px; font-weight:600;">${a.title}</div>
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">${dateStr}</div>
+        <div class="article-content">${a.body}</div>
+      </div>`;
+    }).join('<div style="border-top:1px solid var(--border); margin:10px 0;"></div>');
+  } catch (e) {
+    // Likely a missing Firestore composite index on first run — Firebase logs a console link to create it automatically.
+    box.style.display = 'none';
+  }
 }
 
 /* ---------- Map styling ---------- */
@@ -695,7 +820,6 @@ gCountries = svg.append('g');
 const tooltip = document.getElementById('tooltip');
 const mapContainer = document.getElementById('map');
 
-/* Zoom behavior */
 let currentZoom = d3.zoomIdentity;
 const zoomBehavior = d3.zoom()
   .scaleExtent([1, 10])
@@ -708,13 +832,8 @@ const zoomBehavior = d3.zoom()
 
 svg.call(zoomBehavior);
 
-function zoomBy(factor) {
-  svg.transition().duration(300).call(zoomBehavior.scaleBy, factor);
-}
-
-function zoomReset() {
-  svg.transition().duration(400).call(zoomBehavior.transform, d3.zoomIdentity);
-}
+function zoomBy(factor) { svg.transition().duration(300).call(zoomBehavior.scaleBy, factor); }
+function zoomReset() { svg.transition().duration(400).call(zoomBehavior.transform, d3.zoomIdentity); }
 
 function zoomToCountry(name) {
   const feature = allFeatures.find(f => f.properties.name === name);
@@ -760,6 +879,29 @@ d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(w
     .duration(500)
     .style('opacity', 1);
 });
+
+/* ---------- Live Firestore sync for country data ---------- */
+onSnapshot(collection(db, 'countries'), (snap) => {
+  snap.forEach(docSnap => {
+    Object.assign(data, { [docSnap.id]: Object.assign(
+      { edu: 50, health: 50, econ: 50, safety: 50, score: 50, tier: 'Strained' },
+      defaultData[docSnap.id] || {},
+      docSnap.data()
+    )});
+  });
+  buildStats();
+  if (gCountries) applyStyles();
+  if (selectedName) renderDetail(selectedName);
+}, (err) => {
+  console.warn('Firestore country sync not available yet — check your firebaseConfig and security rules.', err);
+});
+
+/* Expose functions referenced by inline HTML handlers */
+window.toggleTierFilter = toggleTierFilter;
+window.resetView = resetView;
+window.onSearch = onSearch;
+window.zoomBy = zoomBy;
+window.zoomReset = zoomReset;
 </script>
 </body>
 </html>
